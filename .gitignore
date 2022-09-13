@@ -1,0 +1,3 @@
+**/__pycache__
+test/spack_env/.spack-env
+test/spack_env/spack.lock

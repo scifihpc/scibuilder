@@ -1,0 +1,8 @@
+---
+environment_files:
+  - test/spack_env/spack.yaml
+deploy_config:
+  deploy_style: rsync
+  deploy_target: triton.aalto.fi
+  source_path: baa
+  target_path: baa
