@@ -1,0 +1,42 @@
+ FROM centos:7
+
+ RUN yum groupinstall -y "Development Tools" \
+   && yum clean all \
+   && rm -rf /var/cache/yum
+ 
+ RUN yum install -y \
+  curl                                 \
+  diffutils                            \
+  gcc                                  \
+  gcc-c++                              \
+  gmp-devel                            \
+  gnupg                                \
+  openssl-devel                        \
+  libffi-devel                         \
+  m4                                   \
+  make                                 \
+  perl                                 \
+  python39                             \
+  platform-python-devel                \
+  wget                                 \
+  && yum clean all                     \
+  && rm -rf /var/cache/yum
+
+# Install gosu
+
+ARG GOSU_VERSION=1.14
+
+RUN set -eux;                             \
+    curl -o /usr/local/bin/gosu -SL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64" && \
+    curl -o /usr/local/bin/gosu.asc -SL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc" && \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    gpg --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu && \
+    rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+    chmod +x /usr/local/bin/gosu       && \
+    gosu --version                     && \
+    gosu nobody true
+
+COPY entry.sh /entry.sh
+
+ENTRYPOINT ["/entry.sh"]
