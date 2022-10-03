@@ -19,7 +19,7 @@ Create a folder where the prefix will be built. One needs to have sudo rights to
 ```sh
 EPREFIX=/appl/prefix/2022-09
 LOCAL_FOLDER=/tmp/$EPREFIX
-mkdir $LOCAL_FOLDER
+mkdir -p $LOCAL_FOLDER
 ```
 
 The container takes two arguments: `$EPREFIX` and `$BUILDER_UID` that tell where the prefix should be built and what UID should be used to build it.
