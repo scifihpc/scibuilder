@@ -18,7 +18,8 @@ Create a folder where the prefix will be built. One needs to have sudo rights to
 
 ```sh
 EPREFIX=/appl/prefix/2022-09
-mkdir /tmp/$EPREFIX
+LOCAL_FOLDER=/tmp/$EPREFIX
+mkdir $LOCAL_FOLDER
 ```
 
 The container takes two arguments: `$EPREFIX` and `$BUILDER_UID` that tell where the prefix should be built and what UID should be used to build it.
@@ -28,7 +29,7 @@ An easy test is to run the builder with the following commands:
 EPREFIX=/appl/prefix/2022-09
 BUILDER_UID=$(id -u)
 BUILDER_OS=alma9
-docker run -v /tmp/$EPREFIX:$EPREFIX --rm -it aaltoscienceit/prefix-creator:$BUILDER_OS $EPREFIX $BUILDER_UID
+docker run -v $LOCAL_FOLDER:$EPREFIX --rm -it aaltoscienceit/prefix-creator:$BUILDER_OS $EPREFIX $BUILDER_UID
 ```
 
 This will create a Gentoo prefix to `/tmp/appl/prefix/2022-09` with you UID.
