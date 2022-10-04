@@ -7,7 +7,7 @@ Alma 9:
 docker build -t aaltoscienceit/prefix-creator:alma9 -f Dockerfile.alma9 .
 ```
 
-Ubuntu 22.04
+Ubuntu 2204
 ```sh
 docker build -t aaltoscienceit/prefix-creator:ubuntu22.04 -f Dockerfile.ubuntu22.04 .
 ```
