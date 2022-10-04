@@ -7,9 +7,9 @@ Alma 9:
 docker build -t aaltoscienceit/prefix-creator:alma9 -f Dockerfile.alma9 .
 ```
 
-Ubuntu 2204
+Ubuntu 22.04
 ```sh
-docker build -t aaltoscienceit/prefix-creator:ubuntu22.04 -f Dockerfile.ubuntu22.04 .
+docker build -t aaltoscienceit/prefix-creator:ubuntu22.04 -f Dockerfile.ubuntu2204 .
 ```
 
 # Running the prefix builder container
