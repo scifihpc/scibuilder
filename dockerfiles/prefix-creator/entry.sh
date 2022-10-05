@@ -13,7 +13,8 @@ BUILDER_UID="$2"
 
 [ "${BUILDER_UID}" -gt 0 ] 2> /dev/null || ( echo "BUILDER_UID=$BUILDER_UID is not an integer!" && exit 1 )
 
-useradd --create-home --uid=$BUILDER_UID --shell /bin/bash builder
+groupadd --gid $BUILDER_UID builder
+useradd --create-home --gid=$BUILDER_UID --uid=$BUILDER_UID --shell /bin/bash builder
 groupadd --gid 60000 portage
 gpasswd --add builder portage > /dev/null
 
@@ -28,4 +29,4 @@ done
 
 chown -Rh $BUILDER_UID.$BUILDER_UID ${EPREFIX}
 
-exec gosu builder /usr/local/bin/bootstrap-helper.sh "${EPREFIX}"
+exec gosu builder:builder /usr/local/bin/bootstrap-helper.sh "${EPREFIX}"
