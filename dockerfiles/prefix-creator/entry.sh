@@ -27,6 +27,5 @@ while true; do
 done
 
 chown -Rh $BUILDER_UID.$BUILDER_UID ${EPREFIX}
-chmod g+s ${EPREFIX}
 
 exec gosu builder /usr/local/bin/bootstrap-helper.sh "${EPREFIX}"
