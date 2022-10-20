@@ -1,10 +1,1 @@
-name: scibuilder
-channels:
-  - conda-forge
-dependencies:
-  - click
-  - coloredlogs
-  - jsonschema
-  - mamba
-  - ruamel.yaml
-  - sh
+dockerfiles/scibuilder-build-image/environment.yml

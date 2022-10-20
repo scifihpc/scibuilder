@@ -1,0 +1,10 @@
+name: scibuilder
+channels:
+  - conda-forge
+dependencies:
+  - click
+  - coloredlogs
+  - jsonschema
+  - mamba
+  - ruamel.yaml
+  - sh

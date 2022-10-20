@@ -3,8 +3,13 @@
  RUN yum groupinstall -y "Development Tools" \
    && yum clean all \
    && rm -rf /var/cache/yum
- 
- RUN yum install -y \
+
+RUN yum install -y                     \
+  epel-release                         \
+  && yum clean all                     \
+  && rm -rf /var/cache/yum
+
+ RUN yum install -y                    \
   curl                                 \
   diffutils                            \
   gcc                                  \
@@ -13,6 +18,7 @@
   gnupg                                \
   openssl-devel                        \
   libffi-devel                         \
+  Lmod                                 \
   m4                                   \
   make                                 \
   perl                                 \
@@ -36,6 +42,23 @@ RUN set -eux;                             \
     chmod +x /usr/local/bin/gosu       && \
     gosu --version                     && \
     gosu nobody true
+
+# Install scibuilder requirements
+
+RUN mkdir /scibuilder
+RUN mkdir /appl
+RUN mkdir /spack
+RUN mkdir /cache
+
+RUN set -eux;                             \
+    curl -o /tmp/Mambaforge-Linux-x86_64.sh -SL "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh" && \
+    bash /tmp/Mambaforge-Linux-x86_64.sh -b -p /opt/conda
+
+COPY environment.yml /opt/conda/environment.yml
+
+RUN /opt/conda/bin/mamba env update -n base -f /opt/conda/environment.yml
+
+COPY activate-scibuilder-spack.sh /usr/local/bin/activate-scibuilder-spack
 
 COPY entry.sh /entry.sh
 
