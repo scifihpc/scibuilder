@@ -22,7 +22,7 @@ EPREFIX=/appl/prefix/2022-09
 LOCAL_FOLDER=/tmp/$EPREFIX
 BUILDER_UID=$(id -u)
 BUILDER_OS=aalto-centos7
-docker run -v $LOCAL_FOLDER:$EPREFIX --rm -it aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID
+docker run -v $LOCAL_FOLDER:$EPREFIX --rm -it aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID /bin/bash
 ```
 
 This will launch an interactive shell within the image.
