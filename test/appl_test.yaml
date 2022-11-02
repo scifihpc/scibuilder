@@ -1,0 +1,8 @@
+---
+environment_files:
+  - /scibuilder/test/appl_test/spack.yaml
+deploy_config:
+  deploy_style: rsync
+  deploy_target: triton.aalto.fi
+  source_path: none_yet
+  target_path: none_yet
