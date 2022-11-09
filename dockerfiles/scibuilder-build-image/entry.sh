@@ -21,7 +21,6 @@ set +e
 id $BUILDER_UID &> /dev/null
 USER_CHECK="$?"
 set -e
-echo $USER_CHECK
 if [[ "$USER_CHECK" -ne 0 ]] ; then
   echo "Builder user does not exist. Creating builder-user."
   groupadd --gid $BUILDER_UID builder
