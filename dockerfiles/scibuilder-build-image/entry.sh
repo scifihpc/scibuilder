@@ -2,12 +2,17 @@
 
 set -euo pipefail
 
-[ "$#" -lt 2 ] && echo "Need at least two arguments: BUILDER_UID and commands to run!" && exit 1
+if [[ -z ${BUILDER_UID+x} ]] ; then
+  [[ "$#" -lt 2 ]] && echo "Need at least two arguments: BUILDER_UID and commands to run!" && exit 1
+  BUILDER_UID=$1
+  shift
+fi
 
-BUILDER_UID=$1
-COMMANDS="${@:2}"
 
-[ -z ${BUILDER_UID+x} ] && echo "BUILDER_UID is not set!" && exit 1
+[[ "$#" -lt 1 ]] && echo "Need at least one command to run!" && exit 1
+
+COMMANDS="$@"
+
 
 [ "${BUILDER_UID}" -gt 0 ] 2> /dev/null || ( echo "BUILDER_UID=$BUILDER_UID is not an integer!" && exit 1 )
 
