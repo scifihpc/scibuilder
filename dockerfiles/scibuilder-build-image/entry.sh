@@ -8,17 +8,26 @@ if [[ -z ${BUILDER_UID+x} ]] ; then
   shift
 fi
 
-
-[[ "$#" -lt 1 ]] && echo "Need at least one command to run!" && exit 1
-
-COMMANDS="$@"
-
+if [[ "$#" -lt 1 ]] ; then
+  COMMANDS="tail -f /dev/null"
+else
+  COMMANDS="$@"
+fi
 
 [ "${BUILDER_UID}" -gt 0 ] 2> /dev/null || ( echo "BUILDER_UID=$BUILDER_UID is not an integer!" && exit 1 )
 
-groupadd --gid $BUILDER_UID builder
-useradd --create-home --gid=$BUILDER_UID --uid=$BUILDER_UID --shell /bin/bash builder
-groupadd --gid 60000 portage
-gpasswd --add builder portage > /dev/null
+# Find builder user
+set +e
+id $BUILDER_UID &> /dev/null
+USER_CHECK="$?"
+set -e
+echo $USER_CHECK
+if [[ "$USER_CHECK" -ne 0 ]] ; then
+  echo "Builder user does not exist. Creating builder-user."
+  groupadd --gid $BUILDER_UID builder
+  useradd --create-home --gid=$BUILDER_UID --uid=$BUILDER_UID --shell /bin/bash builder
+  groupadd --gid 60000 portage
+  gpasswd --add builder portage > /dev/null
+fi
 
 exec gosu builder $COMMANDS
