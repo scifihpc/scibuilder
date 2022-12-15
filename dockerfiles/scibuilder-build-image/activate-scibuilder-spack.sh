@@ -9,10 +9,12 @@ COMMANDS="${@:2}"
 
 [ ! -d ${EPREFIX} ] && echo "No directory found for EPREFIX=${EPREFIX}" && exit 1
 
-echo "Linking $HOME/.spack/bootstrap to /cache/spack_bootstrap"
-mkdir -p $HOME/.spack
-mkdir -p /cache/spack_bootstrap
-ln -s -T /cache/spack_bootstrap $HOME/.spack/bootstrap
+if [ ! -d $HOME/.spack ]; then
+  echo "Linking $HOME/.spack/bootstrap to /cache/spack_bootstrap"
+  mkdir -p $HOME/.spack
+  mkdir -p /cache/spack_bootstrap
+  ln -s -T /cache/spack_bootstrap $HOME/.spack/bootstrap
+fi
 
 RETAIN="HOME=$HOME TERM=$TERM USER=$USER SHELL=$SHELL"
 
