@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import click
 from scibuilder.spackbuilder import SpackBuilder
 from scibuilder.logging import initializeLogger
@@ -7,11 +8,16 @@ from scibuilder.logging import initializeLogger
 @click.command()
 @click.argument("builder", type=click.Choice(("spack", "conda", "singularity")), nargs=1)
 @click.argument("command", type=click.Choice(("build", "deploy")), nargs=1)
-@click.argument("conf", type=click.Path(exists=True), nargs=1)
+@click.argument("conf", type=str, nargs=1)
 @click.option("--loglevel", default="info", type=click.Choice(("debug", "info", "warning")))
-def run_builder(builder, command, conf, loglevel):
+@click.option("--cwd", default=None, help="Change working directory")
+def run_builder(builder, command, conf, loglevel, cwd):
 
     logger = initializeLogger(loglevel)
+
+    if cwd is not None:
+        logger.debug(f"Switching working directory from {os.getcwd()} to {cwd}")
+        os.chdir(cwd)
 
     builders = {
         "spack": SpackBuilder,
@@ -19,6 +25,8 @@ def run_builder(builder, command, conf, loglevel):
         "singularity": None,
     }
     builder = builders[builder](conf)
+
+    print(cwd)
 
     if command == "build":
         try:
