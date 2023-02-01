@@ -84,7 +84,7 @@ docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BU
 
 To activate the prefix, spack repository and the conda environment needed by the
 scibuilder (which is installed in the container in `/opt/conda`) one needs to run
-the `activate-scibuilder-spack`-script in the container.
+the `activate-scibuilder-prefix`-script in the container.
 
 This script takes as its arguments the prefix that needs to be activated and
 commands that should be run.
@@ -95,5 +95,18 @@ In this example, it is assumed that the prefix is installed in
 activated with:
 
 ```sh
-docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID activate-scibuilder-spack $EPREFIX bash
+docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID activate-scibuilder-prefix $EPREFIX bash
+```
+
+## Running a shell in the build image with only spack activated
+
+To activate the spack repository and the conda environment needed by the
+scibuilder (which is installed in the container in `/opt/conda`) one needs to run
+the `activate-scibuilder-spack`-script in the container.
+
+This script takes as its arguments the commands that should be run.
+
+For example, we can launch an interactive shell with spack activated with:
+```sh
+docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID activate-scibuilder-spack bash
 ```
