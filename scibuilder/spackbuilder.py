@@ -6,6 +6,7 @@ import pprint
 from .builder import Builder
 
 try:
+    import sh
     from sh import spack
 except ImportError as e:
     logging.error("Spack was not found. Spack builder will not work.")
@@ -63,28 +64,42 @@ class SpackBuilder(Builder):
 
             self.logger.info("%s - Doing a reindex of installed packages", name)
             self.logger.info("%s - Currently installed packages", name)
-            spack("--env-dir", env_file_dir, "find", _out=logging.info, _err=logging.error, _env=sysenv)
+            run_spack(env_file_dir, "find")
 
+            system_compiler = env.get('system_compiler', "")
             compilers = env.get('compilers', [])
 
             self.logger.info("%s - Finding system compilers", name)
-            spack("--env-dir", env_file_dir, "compiler", "find", _out=logging.info, _err=logging.error, _env=sysenv)
+            run_spack(env_file_dir, "compiler", "find")
             for compiler in compilers:
-                self.logger.info("%s - Installing compilers", name)
-                spack("--env-dir", env_file_dir, "install", "--add", compiler, _out=logging.info, _err=logging.error, _env=sysenv)
-                compiler_dir=str(spack("--env-dir", env_file_dir, "location", "-i", compiler, _err=logging.error, _env=sysenv)).strip()
-                spack("--env-dir", env_file_dir, "compiler", "add", compiler_dir, _out=logging.info, _err=logging.error, _env=sysenv)
+
+                compiler_spec = f"{compiler}%{system_compiler}"
+
+                tries = 0
+                compiler_found = False
+                while tries < 2 and not compiler_found:
+                    self.logger.info("%s - Checking if compiler %s is present", name, compiler_spec)
+                    try:
+                        compiler_find = run_spack_capture(env_file_dir, "find", compiler_spec)
+                        compiler_found = True
+                    except sh.ErrorReturnCode:
+                        pass
+
+                    if not compiler_found:
+                        self.logger.info("%s - Installing compiler %s", name, compiler_spec)
+                        run_spack(env_file_dir, "install", "--add", compiler_spec)
+                    else:
+                        compiler_dir=str(run_spack_capture(env_file_dir, "location", "-i", compiler_spec)).strip()
+                        run_spack(env_file_dir, "compiler", "find", compiler_dir)
+
+                    tries += 1
+
 
             self.logger.info("%s - Listing compilers", name)
-            spack("--env-dir", env_file_dir, "compilers", _out=logging.info, _err=logging.error, _env=sysenv)
+            run_spack(env_file_dir, "compilers")
 
             self.logger.info("%s - Concretizing build", name)
-            spack("--env-dir", env_file_dir, "concretize", _out=logging.info, _err=logging.error, _env=sysenv)
+            run_spack(env_file_dir, "concretize")
 
             self.logger.info("%s - Starting build", env_file)
-            spack("--env-dir", env_file_dir, "install", _out=logging.info, _err=logging.error, _env=sysenv)
-
-            #self.logger.info("%s - Refreshing modules", env_file)
-            #spack("--env-dir", env_file_dir, "--debug", "module", "lmod", "refresh", "--delete-tree", _out=logging.info, _err=logging.error, _env=sysenv)
-
-
+            run_spack(env_file_dir, "install")
