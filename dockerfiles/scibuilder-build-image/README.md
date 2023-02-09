@@ -53,7 +53,7 @@ After this, let's create the folder and get the required repositories:
 ```sh
 mkdir -p $LOCAL_FOLDER/appl
 git clone https://github.com/spack/spack.git $LOCAL_FOLDER/spack
-git clone git@github.com:AaltoSciComp/scibuilder.git $LOCAL_FOLDER/scibuilder
+git clone https://github.com/scifihpc/scibuilder.git $LOCAL_FOLDER/scibuilder
 ```
 
 One should then use the [prefix creator](../prefix-creator/README.md) to create the prefix
