@@ -103,3 +103,6 @@ class SpackBuilder(Builder):
 
             self.logger.info("%s - Starting build", env_file)
             run_spack(env_file_dir, "install")
+
+            self.logger.info("%s - Rebuilding modules", env_file)
+            run_spack(env_file_dir, "module", "lmod", "refresh")
