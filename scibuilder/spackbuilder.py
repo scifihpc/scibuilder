@@ -105,4 +105,4 @@ class SpackBuilder(Builder):
             run_spack(env_file_dir, "install")
 
             self.logger.info("%s - Rebuilding modules", env_file)
-            run_spack(env_file_dir, "module", "lmod", "refresh")
+            run_spack(env_file_dir, "module", "lmod", "refresh", "-y")
