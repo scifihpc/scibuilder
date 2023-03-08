@@ -34,11 +34,19 @@ class Builder:
 
     def __init__(self, conf):
         self.conf = read_config(conf, self.CONF_SCHEMA)
-        self.logger = logging.getLogger('Builder')
+        self.logger = logging.getLogger('Scibuilder')
         self.logger.info("Configuration used:\n%s", format_config(self.conf))
 
-    def build(self):
+    def build(self, tags=None):
         pass
 
-    def deploy(self):
+    def deploy(self, tags=None):
         pass
+
+    @staticmethod
+    def check_tags(tags, env_tags):
+        tag_found = False
+        for tag in tags:
+            if tag in env_tags:
+                tag_found = True
+        return tag_found

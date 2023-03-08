@@ -21,7 +21,7 @@ def getAbsolutePath(path):
 
 class SpackBuilder(Builder):
 
-    def build(self):
+    def build(self, tags=None):
 
         envs = self.conf.get("environments", [])
 
@@ -48,6 +48,7 @@ class SpackBuilder(Builder):
 
             name = env['name']
 
+
             assert 'environment_file' in env, \
                 f"Environment {name} has no environment file."
 
@@ -61,6 +62,12 @@ class SpackBuilder(Builder):
 
             assert os.path.isfile(env_file_abs), \
                 f"Environment file {env_file_abs} does not exist!"
+
+            if tags is not None:
+                env_tags = env.get('tags', [])
+                if not self.check_tags(tags, env_tags):
+                    self.logger.info("%s - Environment not tagged for building")
+                    continue
 
             self.logger.info("%s - Doing a reindex of installed packages", name)
             self.logger.info("%s - Currently installed packages", name)

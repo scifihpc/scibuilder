@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import logging
 import click
 from scibuilder.spackbuilder import SpackBuilder
 from scibuilder.logging import initializeLogger
@@ -11,12 +12,19 @@ from scibuilder.logging import initializeLogger
 @click.argument("conf", type=str, nargs=1)
 @click.option("--loglevel", default="info", type=click.Choice(("debug", "info", "warning")))
 @click.option("--cwd", default=None, help="Change working directory")
-def run_builder(builder, command, conf, loglevel, cwd):
+@click.option("--tags", default=None, help="Only build environments with these tags")
+def run_builder(builder, command, conf, loglevel, cwd, tags):
 
-    logger = initializeLogger(loglevel)
+    initializeLogger(loglevel)
+
+    logger = logging.getLogger('Scibuilder')
+
+    if tags is not None:
+        tags = str(tags).split(',')
+        logger.info(f"Tags specified: {tags}")
 
     if cwd is not None:
-        logger.debug(f"Switching working directory from {os.getcwd()} to {cwd}")
+        logger.info(f"Switching working directory from {os.getcwd()} to {cwd}")
         os.chdir(cwd)
 
     builders = {
@@ -26,11 +34,9 @@ def run_builder(builder, command, conf, loglevel, cwd):
     }
     builder = builders[builder](conf)
 
-    print(cwd)
-
     if command == "build":
         try:
-            builder.build()
+            builder.build(tags=tags)
         except Exception as e:
             logger.error("Build step produced an error:\n\n%s", str(e))
             raise e
