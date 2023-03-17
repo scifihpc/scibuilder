@@ -105,6 +105,8 @@ COPY activate-scibuilder-spack.sh /usr/local/bin/activate-scibuilder-spack
 
 COPY activate-scibuilder-prefix.sh /usr/local/bin/activate-scibuilder-prefix
 
+COPY initialize-spack.sh /usr/local/bin/initialize-spack
+
 COPY entry.sh /entry.sh
 
 ENTRYPOINT ["/entry.sh"]
