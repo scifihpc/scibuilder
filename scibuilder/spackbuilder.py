@@ -4,6 +4,7 @@ import sys
 import logging
 import pprint
 from .builder import Builder
+from .utils import getAbsolutePath
 
 try:
     import sh
@@ -11,12 +12,6 @@ try:
 except ImportError as e:
     logging.error("Spack was not found. Spack builder will not work.")
 
-
-def getAbsolutePath(path):
-    if path[0] != '/':
-        workdir = os.getcwd()
-        path = os.path.join(workdir, path)
-    return path
 
 
 class SpackBuilder(Builder):
@@ -47,7 +42,6 @@ class SpackBuilder(Builder):
                 f"Missing an environment name."
 
             name = env['name']
-
 
             assert 'environment_file' in env, \
                 f"Environment {name} has no environment file."

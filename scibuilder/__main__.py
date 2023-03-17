@@ -3,11 +3,12 @@ import os
 import logging
 import click
 from scibuilder.spackbuilder import SpackBuilder
+from scibuilder.mambabuilder import MambaBuilder
 from scibuilder.logging import initializeLogger
 
 
 @click.command()
-@click.argument("builder", type=click.Choice(("spack", "conda", "singularity")), nargs=1)
+@click.argument("builder", type=click.Choice(("spack", "mamba", "singularity")), nargs=1)
 @click.argument("command", type=click.Choice(("build", "deploy")), nargs=1)
 @click.argument("conf", type=str, nargs=1)
 @click.option("--loglevel", default="info", type=click.Choice(("debug", "info", "warning")))
@@ -29,7 +30,7 @@ def run_builder(builder, command, conf, loglevel, cwd, tags):
 
     builders = {
         "spack": SpackBuilder,
-        "conda": None,
+        "mamba": MambaBuilder,
         "singularity": None,
     }
     builder = builders[builder](conf)

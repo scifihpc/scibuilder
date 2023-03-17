@@ -1,27 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 import logging
-from io import StringIO
-from ruamel.yaml import YAML
-from textwrap import indent
 from jsonschema import validate, Draft4Validator
+from .utils import readYaml, formatYamlDict
 
 
-def read_config(conf_file, schema):
-    yaml = YAML(typ='safe')
-    with open(conf_file, 'r') as c_f:
-        conf = yaml.load(c_f.read())
+def readConfig(conf_file, schema):
+    conf = readYaml(conf_file)
     validate(instance=conf, schema=schema)
     return conf
-
-def format_config(conf):
-    s = StringIO()
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    yaml.default_flow_style = False
-    yaml.dump(conf, s)
-    return indent(s.getvalue(), 4*' ')
-
 
 class Builder:
 
@@ -33,9 +20,9 @@ class Builder:
     }
 
     def __init__(self, conf):
-        self.conf = read_config(conf, self.CONF_SCHEMA)
+        self.conf = readConfig(conf, self.CONF_SCHEMA)
         self.logger = logging.getLogger('Scibuilder')
-        self.logger.info("Configuration used:\n%s", format_config(self.conf))
+        self.logger.info("Configuration used:\n%s", formatYamlDict(self.conf))
 
     def build(self, tags=None):
         pass
