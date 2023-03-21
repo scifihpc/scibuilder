@@ -16,6 +16,11 @@ fi
 
 [ "${BUILDER_UID}" -gt 0 ] 2> /dev/null || ( echo "BUILDER_UID=$BUILDER_UID is not an integer!" && exit 1 )
 
+if [[ ! -z ${SKIP_ENTRY+x} ]]; then
+  echo 'Skipping entry'
+  exec " $COMMANDS"
+fi
+
 # Find builder user
 set +e
 id $BUILDER_UID &> /dev/null
@@ -28,5 +33,8 @@ if [[ "$USER_CHECK" -ne 0 ]] ; then
   groupadd --gid 60000 portage
   gpasswd --add builder portage > /dev/null
 fi
+
+echo "My ID is: "$(id)
+echo "Builder user ID is: "$(id $BUILDER_UID)
 
 exec gosu builder $COMMANDS

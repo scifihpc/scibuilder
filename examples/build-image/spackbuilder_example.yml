@@ -1,0 +1,15 @@
+---
+environments:
+  - name: spack_example
+    tags:
+      - spack
+      - main
+    environment_file: /scibuilder/examples/build-image/spack_example_hy-alma8/spack.yaml
+    system_compiler: "gcc@8.5.0"
+    compilers:
+      - "gcc@11.3.0"
+deploy_config:
+  deploy_style: rsync
+  deploy_target: triton.aalto.fi
+  source_path: none_yet
+  target_path: none_yet

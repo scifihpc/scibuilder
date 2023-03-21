@@ -7,10 +7,10 @@ set -eo pipefail
 COMMANDS="${@}"
 
 if [ ! -d $HOME/.spack ]; then
-  echo "Linking $HOME/.spack/bootstrap to /cache/spack_bootstrap"
+  echo "Linking $HOME/.spack/bootstrap to /stage/spack_bootstrap"
   mkdir -p $HOME/.spack
-  mkdir -p /cache/spack_bootstrap
-  ln -s -T /cache/spack_bootstrap $HOME/.spack/bootstrap
+  mkdir -p /stage/spack_bootstrap
+  ln -s -T /stage/spack_bootstrap $HOME/.spack/bootstrap
 fi
 
 echo "Activating conda environment from /opt/conda/bin"

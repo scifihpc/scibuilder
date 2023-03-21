@@ -1,112 +1,129 @@
+# Requirements
+
+For building and running the images it is best to use
+[rootless podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md).
+
+In Ubuntu 22.04, this is just:
+
+```sh
+# Install podman
+sudo apt install podman
+# Give user a set of UID's that the user can use to appear as root
+# inside the container while being rootless outside of it
+sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER
+# Make podman aware of the change
+podman system migrate
+```
+
+This will enable one to do builds in the images without ever getting root rights.
+
 # Build the build images
 
 Build images can be built with the following commands.
 
 Aalto Centos 7:
 ```sh
-docker build -t aaltoscienceit/scibuilder-build-image:aalto-centos7 -f Dockerfile.aalto-centos7 .
+podman build -t ghcr.io/scifihpc/scibuilder-build-image:aalto-centos7-v1.0.0 -f Dockerfile.aalto-centos7 .
 ```
 
 HY Alma 8:
 ```sh
-docker build -t aaltoscienceit/scibuilder-build-image:hy-alma8 -f Dockerfile.hy-alma8 .
+podman build -t ghcr.io/scifihpc/scibuilder-build-image:hy-alma8-v1.0.0 -f Dockerfile.hy-alma8 .
 ```
 
-# Requirements for a build
+# Initializing the build
 
-The build container expects the following things to be present:
+Before running the build we should create folders needed by the builder.
+The folders are as follows:
 
-- Gentoo prefix should be installed in a directory inside the container
-- The place where the end product goes should be mounted inside the container
-- Spack repository should be mounted on /spack inside the container
-- Scibuilder repository should be mounted on /scibuilder
-- Cache folder should be mounted in /cache
-
-In the next example we use the following folder structure:
 - `$LOCAL_FOLDER` - Root folder for other folders
-- `$LOCAL_FOLDER/appl/prefix` - Root folder for Gentoo prefix installations
-- `$LOCAL_FOLDER/appl/spack` - Root folder for Spack installation artifacts
-- `$LOCAL_FOLDER/spack`- Spack repository
-- `$LOCAL_FOLDER/scibuilder`- Scibuilder repository
-- `$LOCAL_FOLDER/cache`- Cache repository
+- `$LOCAL_FOLDER/appl` - Root folder for software.
+- `$LOCAL_FOLDER/cache`- Cache repository.
+- `$LOCAL_FOLDER/stage`- Stage repository.
+- `$LOCAL_FOLDER/spack`- Spack repository used by the builder.
+- `$LOCAL_FOLDER/scibuilder`- Scibuilder repository.
 
-The `$LOCAL_FOLDER` should be set on a local filesystem where you're allowed
-to own folders and files to `$BUILDER_UID:$BUILDER_UID`. Thus `/home` or other
-system folders are not recommended.
-export EPREFIX=/appl/prefix/2022-09
 As everything in the docker image will be mounted in a different location, one
 can freely move the `$LOCAL_FOLDER` around in the build machine.
 
-# Running the build container interactively
+When running multiple builders you will want to set up a workflow so that each
+worker will get its own directories on the filesystem. This is not explained here,
+as that is done by the workflow and not done manually.
 
-First, let's set up the environment variables:
-```sh
-export LOCAL_FOLDER=/l/scibuilder_folders # This may wary based on a system where you're running
-export EPREFIX=/appl/prefix/2022-09 # Location where prefix is installed in the container
-export BUILDER_UID=$(id -u)
-export BUILDER_OS=aalto-centos7
-export SCIBUILDER_MOUNTS="-v $LOCAL_FOLDER/appl:/appl -v $LOCAL_FOLDER/spack:/spack -v $LOCAL_FOLDER/scibuilder:/scibuilder -v $LOCAL_FOLDER/cache:/cache"
-```
-
-After this, let's create the folder and get the required repositories:
+Running `initialize-spack`-script in the container will download the desired
+branch/tag from [spack's repository](https://github.com/spack/spack/):
 
 ```sh
-mkdir -p $LOCAL_FOLDER/appl
-git clone https://github.com/spack/spack.git $LOCAL_FOLDER/spack
+# Local folder location can be changed to whatever you like
+export LOCAL_FOLDER=/opt/scibuilder
+# Choose build image
+export BUILD_IMAGE=ghcr.io/scifihpc/scibuilder-build-image:hy-alma8-v1.0.0
+# Choose spack version
+export SPACK_VERSION=v0.19.1
+
+# Create folders for the build
+mkdir -p $LOCAL_FOLDER/{appl,stage,cache}
+# Clone scibuilder
 git clone https://github.com/scifihpc/scibuilder.git $LOCAL_FOLDER/scibuilder
+# Initialize spack
+podman run --rm -it -v $LOCAL_FOLDER:$LOCAL_FOLDER $BUILD_IMAGE initialize-spack $LOCAL_FOLDER/spack $SPACK_VERSION
 ```
 
-One should then use the [prefix creator](../prefix-creator/README.md) to create the prefix
-to `$LOCAL_FOLDER/$EPREFIX`.
+You should note that the spack repository downloaded by the rootless image has
+ownership rights as your user:
+```sh
+ls -l $LOCAL_FOLDER/spack
+```
 
+# Running the build interactively
+
+First, let's set up environment variable for the folders:
+```sh
+export SCIBUILDER_MOUNTS="-v $LOCAL_FOLDER/appl:/appl -v $LOCAL_FOLDER/spack:/spack -v $LOCAL_FOLDER/scibuilder:/scibuilder -v $LOCAL_FOLDER/cache:/cache -v $LOCAL_FOLDER/stage:/stage"
+```
 Now we can run shell inside the build image.
 
 ## Running a shell in the build image
 
-The container takes as its arguments the `$BUILDER_UID` UID that should be
-used inside of the container and the commands that should be run.
-
 One can launch a simple terminal in the build image with:
-```sh
-docker run --rm -it -v $LOCAL_FOLDER/appl:/appl -v $LOCAL_FOLDER/spack:/spack -v $LOCAL_FOLDER/scibuilder:/scibuilder -v $LOCAL_FOLDER/cache:/cache aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID bash
-```
-
-One should be able to verify in the shell that `/appl`, `/spack`, `/scibuilder`
-and `/cache` are mounted (`/cache` might be empty if build has not been run
-previously).
 
 We can clean up this command with the `$SCIBUILDER_MOUNTS`-environment variable:
 ```sh
-docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID bash
+podman run --rm -it $SCIBUILDER_MOUNTS $BUILD_IMAGE bash
 ```
 
-## Running a shell in the build image with prefix activated
+One should be able to verify in the shell that `/appl`, `/spack`, `/scibuilder`,
+`/stage` and `/cache` are mounted. Most of the folders will be empty if builds
+have not been run previously).
 
-To activate the prefix, spack repository and the conda environment needed by the
-scibuilder (which is installed in the container in `/opt/conda`) one needs to run
-the `activate-scibuilder-prefix`-script in the container.
+You can verify that in the container you appear as root by running `id`.
 
-This script takes as its arguments the prefix that needs to be activated and
-commands that should be run.
-
-In this example, it is assumed that the prefix is installed in
-`$LOCAL_FOLDER/appl/prefix/2022-09`. Thus inside the image the prefix will be in
-`/appl/prefix/2022-09` and we can launch an interactive shell with prefix
-activated with:
-
-```sh
-docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID activate-scibuilder-prefix $EPREFIX bash
-```
-
-## Running a shell in the build image with only spack activated
+## Running a shell in the build image with spack
 
 To activate the spack repository and the conda environment needed by the
 scibuilder (which is installed in the container in `/opt/conda`) one needs to run
-the `activate-scibuilder-spack`-script in the container.
+the `activate-spack`-script in the container.
 
-This script takes as its arguments the commands that should be run.
+The script takes as its arguments commands you want to run after the activation.
+For example, on can take interactive shell with activated spack with:
 
-For example, we can launch an interactive shell with spack activated with:
 ```sh
-docker run --rm -it $SCIBUILDER_MOUNTS aaltoscienceit/scibuilder-build-image:$BUILDER_OS $BUILDER_UID activate-scibuilder-spack bash
+podman run --rm -it $SCIBUILDER_MOUNTS $BUILD_IMAGE activate-spack bash
 ```
+
+One can then run `spack` to see that the spack installation is activated.
+
+## Running an example build with scibuilder
+
+To run a scibuilder build we want to:
+
+1. Start in the `/scibuilder`-folder (`--workdir /scibuilder`)
+2. Run scibuilder in the image after spack activation (`python -m scibuilder spack build`)
+3. Run example from the `/scibuilder`-folder.
+
+This can be brought together in the following command:
+```sh
+podman run --rm -it --workdir /scibuilder $SCIBUILDER_MOUNTS $BUILD_IMAGE activate-spack python -m scibuilder spack build /scibuilder/examples/build-image/spackbuilder_example.yml
+```
+
+This will run an example build.
