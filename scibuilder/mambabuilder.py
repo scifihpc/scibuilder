@@ -2,9 +2,15 @@
 import os
 import logging
 from .builder import Builder
-from .utils import getAbsolutePath, calculateChecksum, calculateEnvChecksum, assertGetValue, downloadFile
+from .utils import (getAbsolutePath,
+                    calculateChecksum,
+                    calculateEnvChecksum,
+                    assertGetValue,
+                    assertPathName,
+                    downloadFile)
 import sh
 import shutil
+import copy
 
 class MambaBuilder(Builder):
 
@@ -21,9 +27,9 @@ class MambaBuilder(Builder):
         sysenv = dict(os.environ)
 
 
-        def run_installer(installer, *commands):
+        def run_installer(installer, build_env, *commands):
 
-            kwargs = {'_out':logging.info, '_err':logging.error, '_env':sysenv }
+            kwargs = {'_out':logging.info, '_err':logging.error, '_env':build_env }
 
             cmd = sh.Command(installer)
             cmd(*commands, **kwargs)
@@ -37,7 +43,11 @@ class MambaBuilder(Builder):
 
             installer_name =  assertGetValue(env, 'installer', f"Environment {name} has no installer.")
 
-            install_path =  assertGetValue(env, 'install_path', f"Environment {name} has no install path.")
+            install_path =  os.path.join(assertGetValue(env, 'install_prefix', f"Environment {name} has no install prefix."), name)
+            module_path =  os.path.join(assertGetValue(env, 'module_prefix', f"Environment {name} has no module prefix."), name)
+
+            assertPathName(install_path, "Installation path (install_prefix + name) can only contain letters, numbers, underscores and dashes.")
+            assertPathName(module_path, "Module path (module_prefix + name) can only contain letters, numbers, underscores and dashes.")
 
             installer =  assertGetValue(installers, installer_name, f"Installer {installer_name} is not specified.")
 
@@ -50,6 +60,9 @@ class MambaBuilder(Builder):
             installer_archive = os.path.join(cache_path, assertGetValue(installer, 'installer_archive', f"Installer {installer_name} does not have a filename."))
 
             installer_binary = os.path.join(cache_path, assertGetValue(installer, 'installer_binary', f"Installer {installer_name} does not have a filename."))
+
+            build_env = copy.deepcopy(sysenv)
+            build_env.update(env.get('build_environment', {}))
 
             hash_length = env.get('hash_length', None)
             if hash_length:
@@ -82,12 +95,12 @@ class MambaBuilder(Builder):
             if hash_length:
                 install_path = os.path.join(install_path, env_checksum)
 
-
             installed_env_file = os.path.join(install_path, 'environment.yml')
 
             if not os.path.isfile(installed_env_file):
                 self.logger.info(f"Environment {name} does not exist. Starting installation.")
                 run_installer(installer_binary,
+                              build_env,
                               "env", "create",
                               "--no-allow-softlinks",
                               "--no-rc",

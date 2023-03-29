@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import hashlib
 import requests
 import json
@@ -35,6 +36,10 @@ def assertGetValue(d, k, msg):
     assert k in d, msg
     return d[k]
 
+
+def assertPathName(path, msg):
+    search = re.match('^(/[a-zA-Z0-9_-]+)+$', path)
+    assert search is not None, msg
 
 def downloadFile(url, filename):
     folder = os.path.dirname(filename)
