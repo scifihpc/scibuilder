@@ -24,6 +24,8 @@ source activate scibuilder
 This example build works on Ubuntu 22.04. It installs cmake as an example.
 
 ```sh
+git clone https://github.com/spack/spack.git
+. spack/share/spack/setup-env.sh
 python -m scibuilder spack build examples/without-image/spackbuilder_example.yml
 ```
 
