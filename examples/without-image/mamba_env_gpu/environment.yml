@@ -1,0 +1,9 @@
+name: mamba_env_gpu
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - conda
+  - mamba
+  - numpy
+  - tensorflow-gpu
