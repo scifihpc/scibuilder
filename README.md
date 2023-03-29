@@ -41,3 +41,37 @@ python -m scibuilder mamba build examples/without-image/mambabuilder_example.yml
 Scibuilder can be run in a docker/podman images.
 
 See image [README.md](dockerfiles/scibuilder-build-image/README.md) for more information.
+
+## Configuring builds
+
+### Spack
+
+Spack builds are configured by creating a YAML-file that describes what environments we
+want to build and the compilers we want to use for building them.
+
+Let's look at [examples/without-image/spackbuilder_example.yml](examples/without-image/spackbuilder_example.yml):
+
+```yml
+environments:
+  - name: spack_example
+    tags:
+      - spack
+      - main
+    environment_file: examples/without-image/spack_example_ubuntu22.04/spack.yaml
+    system_compiler: "gcc@11.3.0"
+    compilers:
+      - "gcc@11.3.0"
+```
+
+The list `environments` consist of multiple independent build with the following
+attributes:
+
+- `name` - Name of the environment
+- `tags` - List of arbitrary tags that can be used to limit the builder to only these
+  builds via the `--tags=TAGS`-parameter.
+- `environmnet_file` - A spack [environement file](https://spack.readthedocs.io/en/latest/environments.html)
+  that contains information on what packages we want to install and where we want to install them.
+- `system_compiler` - A compiler present in the system that the builder will try to locate for
+  spack to use as an initial compiler.
+- `compilers`: List of compilers that spack will try to locate and build with the system compiler
+  before building the environment in full.
