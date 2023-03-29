@@ -36,8 +36,8 @@ one with gpu-enabled packgages and one without.
 python -m scibuilder mamba build examples/without-image/mambabuilder_example.yml
 ```
 
-## scibuilder-build-images
+## scibuilder-build-image
 
-Scibuilder can be run in a docker images.
+Scibuilder can be run in a docker/podman images.
 
-See image [README.md](dockerfiles/scibuilder-build-images/README.md) for more information.
+See image [README.md](dockerfiles/scibuilder-build-image/README.md) for more information.
