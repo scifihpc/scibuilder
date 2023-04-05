@@ -21,6 +21,7 @@ class Builder:
 
     def __init__(self, conf):
         self.conf = readConfig(conf, self.CONF_SCHEMA)
+        self.conf['conf_file'] = conf
         self.logger = logging.getLogger('Scibuilder')
         self.logger.info("Configuration used:\n%s", formatYamlDict(self.conf))
 

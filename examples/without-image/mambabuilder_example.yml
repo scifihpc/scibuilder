@@ -1,6 +1,6 @@
 environments:
   - name: mamba_env
-    environment_file: examples/without-image/mamba_env/environment.yml
+    environment_file: mamba_env/environment.yml
     tags:
       - mamba
       - main
@@ -10,7 +10,7 @@ environments:
     module_version: '2023-01'
     hash_length: 6
   - name: mamba_env_gpu
-    environment_file: examples/without-image/mamba_env_gpu/environment.yml
+    environment_file: mamba_env_gpu/environment.yml
     tags:
       - mamba
       - main

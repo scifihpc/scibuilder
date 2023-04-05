@@ -48,7 +48,9 @@ class SpackBuilder(Builder):
 
             env_file = env['environment_file']
 
-            env_file_abs = getAbsolutePath(env_file)
+            conf_path = os.path.dirname(self.conf['conf_file'])
+
+            env_file_abs = getAbsolutePath(env_file, base_dir=conf_path)
             env_file_dir, env_file_name = os.path.split(env_file_abs)
 
             assert env_file_name == "spack.yaml", \

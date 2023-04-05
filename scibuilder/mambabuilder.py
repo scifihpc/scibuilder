@@ -41,6 +41,13 @@ class MambaBuilder(Builder):
 
             env_file = assertGetValue(env, 'environment_file', f"Environment {name} has no environment file.")
 
+            conf_path = os.path.dirname(self.conf['conf_file'])
+
+            env_file_abs = getAbsolutePath(env_file, base_dir=conf_path)
+
+            assert os.path.isfile(env_file_abs), \
+                f"Environment file {env_file_abs} does not exist!"
+
             installer_name =  assertGetValue(env, 'installer', f"Environment {name} has no installer.")
 
             install_path =  os.path.join(assertGetValue(env, 'install_prefix', f"Environment {name} has no install prefix."), name)
@@ -86,7 +93,7 @@ class MambaBuilder(Builder):
                 self.logger.info(f"Extracting {installer_archive}.")
                 sh.tar("-C", cache_path, "-x", "-f", installer_archive)
 
-            env_checksum = calculateEnvChecksum(env_file, length=hash_length)
+            env_checksum = calculateEnvChecksum(env_file_abs, length=hash_length)
 
             if not os.path.isdir(install_path):
                 self.logger.info(f"Creating base install path: {install_path}")
@@ -107,9 +114,9 @@ class MambaBuilder(Builder):
                               "--no-env",
                               "--yes",
                               "--prefix", install_path,
-                              "--file", env_file)
+                              "--file", env_file_abs)
                 self.logger.info(f"Installation of environment {name} was successful. Copying environment file.")
-                shutil.copyfile(env_file, installed_env_file)
+                shutil.copyfile(env_file_abs, installed_env_file)
 
             else:
                 self.logger.info(f"Environment {name} exists, not installing.")

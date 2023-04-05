@@ -4,7 +4,7 @@ environments:
     tags:
       - spack
       - main
-    environment_file: examples/without-image/spack_example_ubuntu22.04/spack.yaml
+    environment_file: spack_example_ubuntu22.04/spack.yaml
     system_compiler: "gcc@11.3.0"
     compilers:
       - "gcc@11.3.0"

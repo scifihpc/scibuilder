@@ -25,11 +25,14 @@ def formatYamlDict(d):
     return indent(s.getvalue(), 4*' ')
 
 
-def getAbsolutePath(path):
-    if path[0] != '/':
-        workdir = os.getcwd()
-        path = os.path.join(workdir, path)
-    return path
+def getAbsolutePath(path, base_dir=None):
+    if path[0] == '/':
+        return path
+
+    if not base_dir:
+        base_dir = os.getcwd()
+
+    return os.path.realpath(os.path.join(base_dir, path))
 
 
 def assertGetValue(d, k, msg):
@@ -40,6 +43,7 @@ def assertGetValue(d, k, msg):
 def assertPathName(path, msg):
     search = re.match('^(/[a-zA-Z0-9_-]+)+$', path)
     assert search is not None, msg
+
 
 def downloadFile(url, filename):
     folder = os.path.dirname(filename)
