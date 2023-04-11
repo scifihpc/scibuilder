@@ -27,14 +27,6 @@ class MambaBuilder(Builder):
         sysenv = dict(os.environ)
 
 
-        def run_installer(installer, build_env, *commands):
-
-            kwargs = {'_out':logging.info, '_err':logging.error, '_env':build_env }
-
-            cmd = sh.Command(installer)
-            cmd(*commands, **kwargs)
-
-
         for env in envs:
 
             name = assertGetValue(env, 'name', "Missing an environment name.")
@@ -71,6 +63,14 @@ class MambaBuilder(Builder):
             build_env = copy.deepcopy(sysenv)
             build_env.update(env.get('build_environment', {}))
 
+            def run_installer(*commands):
+
+                kwargs = {'_out':logging.info, '_err':logging.error, '_env':build_env }
+
+                cmd = sh.Command(installer_binary)
+                cmd(*commands, **kwargs)
+
+
             hash_length = env.get('hash_length', None)
             if hash_length:
                 try:
@@ -106,9 +106,8 @@ class MambaBuilder(Builder):
 
             if not os.path.isfile(installed_env_file):
                 self.logger.info(f"Environment {name} does not exist. Starting installation.")
-                run_installer(installer_binary,
-                              build_env,
-                              "env", "create",
+                run_installer("env",
+                              "create",
                               "--no-allow-softlinks",
                               "--no-rc",
                               "--no-env",

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import copy
 import logging
 import pprint
 from .builder import Builder
@@ -24,17 +25,6 @@ class SpackBuilder(Builder):
 
         sysenv = dict(os.environ)
 
-        def run_spack(env_file_dir, *commands):
-            args = ["--env-dir", env_file_dir]
-            args += list(commands)
-            kwargs = {'_out':logging.info, '_err':logging.error, '_env':sysenv }
-            spack(*args, **kwargs)
-
-        def run_spack_capture(env_file, *commands):
-            args = ["--env-dir", env_file_dir]
-            args += list(commands)
-            kwargs = {'_err':logging.error, '_env':sysenv }
-            return spack(*args, **kwargs)
 
         for env in envs:
 
@@ -59,6 +49,23 @@ class SpackBuilder(Builder):
             assert os.path.isfile(env_file_abs), \
                 f"Environment file {env_file_abs} does not exist!"
 
+            build_environment = env.get('build_environment', {})
+
+            build_env = copy.deepcopy(sysenv)
+            build_env.update(build_environment)
+
+            def run_spack(*commands):
+                args = ["--env-dir", env_file_dir]
+                args += list(commands)
+                kwargs = {'_out':logging.info, '_err':logging.error, '_env':build_env }
+                spack(*args, **kwargs)
+
+            def run_spack_capture(*commands):
+                args = ["--env-dir", env_file_dir]
+                args += list(commands)
+                kwargs = {'_err':logging.error, '_env':build_env }
+                return spack(*args, **kwargs)
+
             if tags is not None:
                 env_tags = env.get('tags', [])
                 if not self.check_tags(tags, env_tags):
@@ -67,13 +74,13 @@ class SpackBuilder(Builder):
 
             self.logger.info("%s - Doing a reindex of installed packages", name)
             self.logger.info("%s - Currently installed packages", name)
-            run_spack(env_file_dir, "find")
+            run_spack("find")
 
             system_compiler = env.get('system_compiler', "")
             compilers = env.get('compilers', [])
 
             self.logger.info("%s - Finding system compilers", name)
-            run_spack(env_file_dir, "compiler", "find")
+            run_spack("compiler", "find")
             for compiler in compilers:
 
                 compiler_spec = f"{compiler}%{system_compiler}"
@@ -83,29 +90,29 @@ class SpackBuilder(Builder):
                 while tries < 2 and not compiler_found:
                     self.logger.info("%s - Checking if compiler %s is present", name, compiler_spec)
                     try:
-                        compiler_find = run_spack_capture(env_file_dir, "find", compiler_spec)
+                        compiler_find = run_spack_capture("find", compiler_spec)
                         compiler_found = True
                     except sh.ErrorReturnCode:
                         pass
 
                     if not compiler_found:
                         self.logger.info("%s - Installing compiler %s", name, compiler_spec)
-                        run_spack(env_file_dir, "install", "--add", compiler_spec)
+                        run_spack("install", "--add", compiler_spec)
                     else:
-                        compiler_dir=str(run_spack_capture(env_file_dir, "location", "-i", compiler_spec)).strip()
-                        run_spack(env_file_dir, "compiler", "find", compiler_dir)
+                        compiler_dir=str(run_spack_capture("location", "-i", compiler_spec)).strip()
+                        run_spack("compiler", "find", compiler_dir)
 
                     tries += 1
 
 
             self.logger.info("%s - Listing compilers", name)
-            run_spack(env_file_dir, "compilers")
+            run_spack("compilers")
 
             self.logger.info("%s - Concretizing build", name)
-            run_spack(env_file_dir, "concretize")
+            run_spack("concretize")
 
             self.logger.info("%s - Starting build", env_file)
-            run_spack(env_file_dir, "install")
+            run_spack("install")
 
             self.logger.info("%s - Rebuilding modules", env_file)
-            run_spack(env_file_dir, "module", "lmod", "refresh", "-y")
+            run_spack("module", "lmod", "refresh", "-y")
