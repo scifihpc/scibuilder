@@ -69,7 +69,7 @@ class SpackBuilder(Builder):
             if tags is not None:
                 env_tags = env.get('tags', [])
                 if not self.check_tags(tags, env_tags):
-                    self.logger.info("%s - Environment not tagged for building")
+                    self.logger.info("%s - Environment not tagged for building", name)
                     continue
 
             self.logger.info("%s - Doing a reindex of installed packages", name)
