@@ -1,0 +1,53 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install base software that will be needed
+
+RUN apt-get update && apt-get install -y \
+  build-essential \
+  curl \
+  diffutils \
+  git \
+  gnupg \
+  libffi-dev \
+  libgmp-dev \
+  libssl-dev \
+  lmod \
+  locales \
+  m4 \
+  make \
+  perl \
+  python3 \
+  python3-dev \
+  wget \
+  && rm -rf /var/lib/apt/lists/*
+
+# Fix locales
+
+RUN echo 'en_US.utf8 UTF-8' > /etc/locale.gen \
+  && dpkg-reconfigure locales \
+  && update-locale LANG=en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+
+ENV LC_ALL en_US.UTF-8
+
+# Install scibuilder requirements
+
+RUN mkdir /scibuilder
+RUN mkdir /appl
+RUN mkdir /spack
+RUN mkdir /cache
+
+COPY environment.yml /tmp/environment.yml
+
+RUN set -eux;\
+  mkdir /tmp/micromamba \
+  && cd /tmp/micromamba \
+  && curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba \
+  && /tmp/micromamba/bin/micromamba env create --yes --file /tmp/environment.yml --prefix /opt/conda
+
+COPY activate-spack.sh /usr/local/bin/activate-spack
+
+COPY initialize-spack.sh /usr/local/bin/initialize-spack
