@@ -99,7 +99,11 @@ class SpackBuilder(Builder):
                         self.logger.info("%s - Installing compiler %s", name, compiler_spec)
                         run_spack("install", "--add", compiler_spec)
                     else:
+                        self.logger.info("%s - Adding compiler %s", name, compiler_spec)
                         compiler_dir=str(run_spack_capture("location", "-i", compiler_spec)).strip()
+                        if compiler == system_compiler:
+                            self.logger.info("%s - Removing conflicting system compiler %s", name, system_compiler)
+                            run_spack("compiler", "remove", system_compiler)
                         run_spack("compiler", "find", compiler_dir)
 
                     tries += 1
