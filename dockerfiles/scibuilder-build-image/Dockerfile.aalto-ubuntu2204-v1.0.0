@@ -50,4 +50,6 @@ RUN set -eux;\
 
 COPY activate-spack.sh /usr/local/bin/activate-spack
 
+COPY activate-conda.sh /usr/local/bin/activate-conda
+
 COPY initialize-spack.sh /usr/local/bin/initialize-spack
