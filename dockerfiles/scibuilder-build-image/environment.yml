@@ -8,3 +8,4 @@ dependencies:
   - mamba
   - ruamel.yaml
   - sh
+  - jinja2

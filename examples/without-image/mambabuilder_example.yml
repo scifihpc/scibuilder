@@ -7,7 +7,7 @@ environments:
     installer: micromamba-1.3.1
     install_prefix: /tmp/scibuilder/appl/mamba/software
     module_prefix: /tmp/scibuilder/appl/mamba/lmod
-    module_version: '2023-01'
+    module_version: 'cpu'
     hash_length: 6
   - name: mamba_env_gpu
     environment_file: mamba_env_gpu/environment.yml
@@ -17,7 +17,7 @@ environments:
     installer: micromamba-1.3.1
     install_prefix: /tmp/scibuilder/appl/mamba/software
     module_prefix: /tmp/scibuilder/appl/mamba/lmod
-    module_version: '2023-01'
+    module_version: 'gpu'
     hash_length: 6
     build_environment:
       CONDA_OVERRIDE_CUDA: "11.7"

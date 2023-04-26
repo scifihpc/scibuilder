@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import logging
+import sh
+import shutil
+import copy
+import textwrap
+
+from jinja2 import Template
+
 from .builder import Builder
 from .utils import (getAbsolutePath,
                     calculateChecksum,
@@ -8,11 +15,53 @@ from .utils import (getAbsolutePath,
                     assertGetValue,
                     assertPathName,
                     downloadFile)
-import sh
-import shutil
-import copy
 
 class MambaBuilder(Builder):
+
+    @staticmethod
+    def write_module(name, version, help_str, install_path, module_path, extra_module_vars):
+
+        def replace_prefix(variable_value):
+            return variable_value.replace('$prefix', install_path)
+
+        for env_function in extra_module_vars:
+            for variable in extra_module_vars[env_function]:
+                extra_module_vars[env_function][variable] = replace_prefix(extra_module_vars[env_function][variable])
+
+
+        moduleconfig = {
+            'name' : name,
+            'version': version,
+            'install_path': install_path,
+            'extra_module_vars': extra_module_vars,
+        }
+
+        template = """
+            -- -*- lua -*-
+            --
+            -- Module file created by Scibuilder
+            --
+
+            whatis([[Name : {{ name }}]])
+            whatis([[Version : {{ version }}]])
+            help([[{{ help_str }}]])
+
+            family("conda")
+            prepend_path("PATH", "{{ install_path }}/bin")
+            setenv("CONDA_PREFIX", "{{ install_path }}")
+            setenv("CONDA_ENV_FILE", "{{ install_path }}/environment.yml")
+            {%- for env_function, variables in extra_module_vars.items() %}
+            {%- for variable_name, variable_value in variables.items() %}
+            {{ env_function }}("{{ variable_name }}", "{{ variable_value }}")
+            {%- endfor %}
+            {%- endfor %}
+        """
+
+        module = Template(textwrap.dedent(template)).render(moduleconfig).strip()
+        os.makedirs(module_path, 0o755)
+
+        with open(os.path.join(module_path, f'{version}.lua'), 'w') as module_file:
+            module_file.write(module)
 
 
     def build(self, tags=None):
@@ -42,10 +91,12 @@ class MambaBuilder(Builder):
 
             installer_name =  assertGetValue(env, 'installer', f"Environment {name} has no installer.")
 
-            install_path =  os.path.join(assertGetValue(env, 'install_prefix', f"Environment {name} has no install prefix."), name)
+            module_version = assertGetValue(env, 'module_version', f"Environment {name} has no module version.")
+
+            install_path =  os.path.join(assertGetValue(env, 'install_prefix', f"Environment {name} has no install prefix."), name, module_version)
             module_path =  os.path.join(assertGetValue(env, 'module_prefix', f"Environment {name} has no module prefix."), name)
 
-            assertPathName(install_path, "Installation path (install_prefix + name) can only contain letters, numbers, underscores and dashes.")
+            assertPathName(install_path, "Installation path (install_prefix + name + module version) can only contain letters, numbers, underscores and dashes.")
             assertPathName(module_path, "Module path (module_prefix + name) can only contain letters, numbers, underscores and dashes.")
 
             installer =  assertGetValue(installers, installer_name, f"Installer {installer_name} is not specified.")
@@ -119,3 +170,11 @@ class MambaBuilder(Builder):
 
             else:
                 self.logger.info(f"Environment {name} exists, not installing.")
+
+            help_str = env.get('help_str', "This is a conda environment created by Scibuilder")
+
+            extra_module_vars = env.get('extra_module_vars', {})
+
+            self.logger.info(f"Creating module file for environment {name}")
+            module = self.write_module(name, module_version, help_str, install_path, module_path, extra_module_vars)
+
