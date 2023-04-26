@@ -119,4 +119,4 @@ class SpackBuilder(Builder):
             run_spack("install")
 
             self.logger.info("%s - Rebuilding modules", env_file)
-            run_spack("module", "lmod", "refresh", "-y")
+            run_spack("module", "lmod", "refresh", "--delete-tree", "-y")
