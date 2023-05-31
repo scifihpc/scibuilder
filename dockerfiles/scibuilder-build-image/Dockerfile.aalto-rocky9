@@ -1,0 +1,81 @@
+FROM rockylinux:9
+
+RUN dnf groupinstall -y "Development Tools" \
+  && dnf clean all \
+  && rm -rf /var/cache/yum
+ 
+# Add needed repos
+
+RUN dnf install -y epel-release                  \
+  && dnf config-manager --enable epel            \
+  && dnf install -y yum-utils                    \
+  && dnf config-manager --set-enabled crb        \
+  && dnf update -y                               \
+  && yum clean all                               \
+  && rm -rf /var/cache/yum
+
+# Install base software that will be needed
+
+RUN dnf install -y                     \
+  diffutils                            \
+  gcc                                  \
+  gcc-c++                              \
+  gmp-devel                            \
+  gnupg                                \
+  openssl-devel                        \
+  libffi-devel                         \
+  Lmod                                 \
+  m4                                   \
+  make                                 \
+  perl                                 \
+  python39                             \
+  platform-python-devel                \
+  wget                                 \
+  && dnf clean all                     \
+  && rm -rf /var/cache/yum
+
+# Fix locales
+
+RUN dnf install -y                     \
+  glibc-locale-source                  \
+  langpacks-en                         \
+  glibc-all-langpacks                  \
+  && dnf clean all                     \
+  && rm -rf /var/cache/yum
+
+RUN echo 'LANG="en_US.utf8"' > /etc/locale.conf \
+  && dnf reinstall -y                   \
+  glibc-common                         \
+  && dnf clean all                     \
+  && rm -rf /var/cache/yum
+
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
+
+
+RUN dnf install -y                     \
+  libibverbs                           \
+  slurm                                \
+  slurm-devel                          \
+  && dnf clean all                     \
+  && rm -rf /var/cache/yum
+
+# Install scibuilder requirements
+
+RUN mkdir /scibuilder
+RUN mkdir /appl
+RUN mkdir /spack
+RUN mkdir /cache
+
+COPY environment.yml /tmp/environment.yml
+
+RUN set -eux;                             \
+  mkdir /tmp/micromamba                   \
+  && cd /tmp/micromamba                   \
+  && curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba \
+  && /tmp/micromamba/bin/micromamba env create --yes --file /tmp/environment.yml --prefix /opt/conda
+
+COPY activate-spack.sh /usr/local/bin/activate-spack
+
+COPY activate-conda.sh /usr/local/bin/activate-conda
+
+COPY initialize-spack.sh /usr/local/bin/initialize-spack
